@@ -1,4 +1,4 @@
-# greycode
+# greycode - don't use this! Work in progress
 
 ## Description
 Greycode is a set of functions supposed to be useful when looking for threats in log data.
