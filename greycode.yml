@@ -1,0 +1,15 @@
+redisSHA256:
+    host: localhost
+    dir: /tmp/sha256
+    append: true
+    port: 6379
+
+redisIP:
+    host: localhost
+    dir: /tmp/ip
+    append: true
+    port: 6380
+
+virustotal:
+    apikey: d619ab14fe99763cb8dd1822f5eca115fac5518153d87d3533bdf642fd89fec8 
+    apiurl: https://www.virustotal.com/vtapi/v2/file/report

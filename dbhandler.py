@@ -2,11 +2,15 @@
 
 import redis
 
-class dbhandler:
+class DBhandler:
 
-    def __init__(self):
-        self.redis_db = redis.StrictRedis(host='localhost', port=6379, db=0)
-        self.redis_db = redis.StrictRedis(host='localhost', port=6379, db=1)
+    def __init__(self, dbconfig):
+        for database in dbconfig:
+            self.databases.append(redis.StrictRedis(host=database['host'], port=database['port'], db=0))
 
-    def getValue(self, key, db)
+    def readdb(self, database, key)
+        pass
+
+    def write(self, database, key, value)
+        pass
         
