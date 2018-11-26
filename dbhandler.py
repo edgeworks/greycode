@@ -5,12 +5,29 @@ import redis
 class DBhandler:
 
     def __init__(self, dbconfig):
+
+        self.databases = {}
         for database in dbconfig:
-            self.databases.append(redis.StrictRedis(host=database['host'], port=database['port'], db=0))
+            self.databases[database['name']] = redis.StrictRedis(host=database['host'], port=database['port'], db=0)
+            # Test each database instance
+            try:
+                self.databases[database['name']].ping()
+            except redis.ConnectionError as e:
+                print(" Cannot connect to database on host {0}:{1}".format(database['host'], database['port']))
+                raise
 
-    def readdb(self, database, key)
-        pass
+    def readdb(self, dbname, key):
+        try:
+            return self.databases[dbname].get(key)
+        except redis.ConnectionError as e:
+            print(" Cannot connect to database on host {0}:{1}".format(database['host'], database['port']))
+            raise
+        
 
-    def write(self, database, key, value)
-        pass
+    def writedb(self, dbname, key, value):
+        try:
+            self.databases[dbname].set(key, value)
+        except redis.ConnectionError as e:
+            print(" Cannot connect to database on host {0}:{1}".format(database['host'], database['port']))
+            raise
         

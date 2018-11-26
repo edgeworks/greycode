@@ -1,13 +1,15 @@
+# Redis instance has to be available on configured port.
+# Greycode does not start redis-server
 redisSHA256:
+    name: sha256
     host: localhost
-    dir: /tmp/sha256
-    append: true
     port: 6379
 
+# Redis instance has to be available on configured port.
+# Greycode does not start redis-server
 redisIP:
+    name: ip
     host: localhost
-    dir: /tmp/ip
-    append: true
     port: 6380
 
 virustotal:

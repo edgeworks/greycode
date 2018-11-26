@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-import sys, cgi, re
+import sys, cgi, re, json, thread
 from vtlookup import VTlookup
 from dbhandler import DBhandler
 
@@ -29,13 +29,7 @@ urls = (
        '/(.*)', 'greycode'
 )
 
-# Set static API key
-# TODO import apikey from config
-APIKEY = 'd619ab14fe99763cb8dd1822f5eca115fac5518153d87d3533bdf642fd89fec8'
-
-
 class greycode:
-
 
     def __init__(self):
         
@@ -45,8 +39,12 @@ class greycode:
 
         self.apikey = cfg['virustotal']['apikey']
         self.apiurl = cfg['virustotal']['apiurl']
-        self.dbsha256 = cfg['redisSHA256']
-        self.database()
+        self.redissha256 = cfg['redisSHA256']
+        self.redisip = cfg['redisIP']
+        self.dbconfig = [self.redissha256, self.redisip]
+        
+        # Connect to databases
+        self.dbhandler = self.database()
 
     # Handle URL input
     def GET(self, query):
@@ -77,7 +75,12 @@ class greycode:
         return query
     
     def database(self):
-        newDBhandler = DBhandler(self.dbsha256)
+        try:
+            return DBhandler(self.dbconfig)
+        except:
+            # Details on errors are logged by DBhandler. Add general comment only
+            print("Connection Error with Redis database")
+            sys.exit(1)
 
     # Method to query IP blacklists
     # Returns
@@ -88,16 +91,40 @@ class greycode:
         newIPlookup = iplookup()
 
 
-    # Method to query virustotal.com with sha256 key
+    # Method to check sha256 hash against Virustotal intel
     # Returns 
     #   - GREEN if virustotal has no findings
     #   - RED if virustotal has at least one finding
     #   - UNKNOWN if virustotal doesn't recognize the hash
-    #   - INPROGRESS if the answer is not ready right away
+    #   - QUERY IN PROGRESS if the answer is not ready right away
     def checkSHA256(self, sha256):
-        # Create new vtlookup object and pass the API key from config
+
+        # Check local database first
+        verdict = self.dbhandler.readdb(self.redissha256['name'], sha256) 
+        # Return local value if available
+        # otherwise start lookup in the background and return "in progress"
+        if verdict != None:
+            return verdict
+        else:
+            # Start threaded Virustotal lookup in background
+            thread.start_new_thread(self.threadedVTQuery, (sha256, ))
+            return "QUERY IN PROGRESS"
+
+    # Method to run virustotal queries threaded in the background
+    def threadedVTQuery(self, sha256):
+        # Create new vtlookup object and pass the API key and URL from config
         newVTlookup = VTlookup(self.apikey, self.apiurl)
-        return newVTlookup.getReport(sha256)
+        report = newVTlookup.getReport(sha256)
+        report = json.dumps(report)
+        report = json.loads(report)
+        if (report['verbose_msg']) == 'Invalid resource, check what you are submitting':
+            print('Invalid resource, check what you are submitting')
+        elif (report['verbose_msg']) == 'The requested resource is not among the finished, queued or pending scans':
+            self.dbhandler.writedb(self.redissha256['name'], sha256, 'UNKNOWN')
+        elif (report['positives']) == 0:
+            self.dbhandler.writedb(self.redissha256['name'], sha256, 'GREEN')
+        else:
+            self.dbhandler.writedb(self.redissha256['name'], sha256, 'RED')
 
 
 
