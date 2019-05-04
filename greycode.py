@@ -4,6 +4,7 @@
 import sys, cgi, re, json, thread
 from vtlookup import VTlookup
 from dbhandler import DBhandler
+from iplookup import IPlookup
 
 try:
     from IPy import IP
@@ -46,6 +47,10 @@ class greycode:
         # Connect to databases
         self.dbhandler = self.database()
 
+        # Start iplookup daemon
+        newIPlookup = IPlookup()
+        # TODO Make use of iplookup
+
     # Handle URL input
     def GET(self, query):
         #Sanitize query
@@ -58,16 +63,16 @@ class greycode:
             pass
             # No action. Input is not an IP address
         else:
-            # TODO Call checkIP
+            # If IPv4, call checkIP
             if ipvers == 4:
-                return "is ip"
+                return self.checkIP(query)
 
         # Check if input is SHA256
         if re.match(r'([a-fA-F\d]{64})', query) == None:
             pass
-            # No action. Input not an IP address
+            # No action. Input not a SHA256 hash
         else:
-            # TODO Call checkSHA256
+            # If SHA256, call checkSHA256
             return self.checkSHA256(query)
         
         # You should onyl land here if no input type was recognized. Return the bad news
@@ -87,9 +92,12 @@ class greycode:
     #   - NO BLACKLIST ENTRY if no match
     #   - [NAME OF BLACKLIST] if matching an entry
     def checkIP(self, ip):
-        # Create new iplookup object
-        newIPlookup = iplookup()
-
+        # Check local database first
+        ipverdict = self.dbhandler.readdb(self.redisip['name'], ip) 
+        if ipverdict != None:
+            return ipverdict
+        else:
+            return "NO BLACKLIST ENTRY"
 
     # Method to check sha256 hash against Virustotal intel
     # Returns 
@@ -100,11 +108,11 @@ class greycode:
     def checkSHA256(self, sha256):
 
         # Check local database first
-        verdict = self.dbhandler.readdb(self.redissha256['name'], sha256) 
+        vtverdict = self.dbhandler.readdb(self.redissha256['name'], sha256) 
         # Return local value if available
         # otherwise start lookup in the background and return "in progress"
-        if verdict != None:
-            return verdict
+        if vtverdict != None:
+            return vtverdict
         else:
             # Start threaded Virustotal lookup in background
             thread.start_new_thread(self.threadedVTQuery, (sha256, ))

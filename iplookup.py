@@ -2,7 +2,7 @@
 
 # TODO
 
-class iplookup:
+class IPlookup:
 
     def __init__(self):
         pass
