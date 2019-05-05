@@ -40,6 +40,7 @@ class greycode:
 
         self.apikey = cfg['virustotal']['apikey']
         self.apiurl = cfg['virustotal']['apiurl']
+        self.urls = cfg['iplookup']['urls']
         self.redissha256 = cfg['redisSHA256']
         self.redisip = cfg['redisIP']
         self.dbconfig = [self.redissha256, self.redisip]
@@ -48,7 +49,7 @@ class greycode:
         self.dbhandler = self.database()
 
         # Start iplookup daemon
-        newIPlookup = IPlookup()
+        newIPlookup = IPlookup(self.urls)
         # TODO Make use of iplookup
 
     # Handle URL input

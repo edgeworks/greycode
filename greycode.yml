@@ -15,3 +15,8 @@ redisIP:
 virustotal:
     apikey: d619ab14fe99763cb8dd1822f5eca115fac5518153d87d3533bdf642fd89fec8 
     apiurl: https://www.virustotal.com/vtapi/v2/file/report
+
+iplookup:
+    urls: 
+        - https://iplists.firehol.org/files/firehol_level1.netset
+        - https://iplists.firehol.org/files/alienvault_reputation.ipset
