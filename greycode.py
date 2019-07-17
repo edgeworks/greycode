@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-
 import sys, cgi, re, json, thread
 from vtlookup import VTlookup
 from dbhandler import DBhandler
