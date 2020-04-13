@@ -1,0 +1,28 @@
+version: "3"
+services:
+  web:
+    image: eegor/greycode:latest
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: 200M
+      restart_policy:
+        condition: on-failure
+    ports:
+      - "42042:42042"
+    networks:
+      - webnet
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - "/nsm/greycode/redis:/data"
+    deploy:
+    command: redis-server --appendonly yes
+    networks:
+      - webnet 
+networks:
+  webnet:

@@ -1,0 +1,4 @@
+#On SecurityOnion the creation of greycode-net is not necessary. Use so-elastic-net instead
+sudo docker network create greycode-net
+sudo docker run --name greycode_db --network greycode-net -p 6379:6379 -d -v /nsm/greycode/redis:/data redis redis-server --appendonly yes
+sudo docker run --name greycode --network greycode-net -p 42042:42042 -d eegor/greycode:latest python ./greycode.py 42042
