@@ -2,15 +2,15 @@
 # Greycode does not start redis-server
 redisSHA256:
     name: sha256
-    host: localhost
+    host: 10.1.242.2
     port: 6379
 
 # Redis instance has to be available on configured port.
 # Greycode does not start redis-server
-redisIP:
-    name: ip
-    host: localhost
-    port: 6380
+#redisIP:
+#    name: ip
+#    host: 10.1.242.2
+#    port: 6380
 
 virustotal:
     apikey: d619ab14fe99763cb8dd1822f5eca115fac5518153d87d3533bdf642fd89fec8 

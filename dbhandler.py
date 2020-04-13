@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
-import redis
+import sys
+
+try:
+    import redis
+except:
+    print("[Warning] redis is missing. Try pip install redis or visit https://pypi.org/project/redis/")
+    sys.exit(1)
 
 class DBhandler:
 
@@ -20,7 +26,7 @@ class DBhandler:
         try:
             return self.databases[dbname].get(key)
         except redis.ConnectionError as e:
-            print(" Cannot connect to database on host {0}:{1}".format(database['host'], database['port']))
+            print (" Cannot connect to database ",dbname)
             raise
         
 
@@ -28,6 +34,6 @@ class DBhandler:
         try:
             self.databases[dbname].set(key, value)
         except redis.ConnectionError as e:
-            print(" Cannot connect to database on host {0}:{1}".format(database['host'], database['port']))
+            print (" Cannot connect to database ",dbname)
             raise
         

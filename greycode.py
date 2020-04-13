@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-import sys, cgi, re, json, thread
+import sys, html, re, json, threading
 from vtlookup import VTlookup
 from dbhandler import DBhandler
 from iplookup import IPlookup
@@ -40,9 +40,18 @@ class greycode:
         self.apikey = cfg['virustotal']['apikey']
         self.apiurl = cfg['virustotal']['apiurl']
         self.urls = cfg['iplookup']['urls']
-        self.redissha256 = cfg['redisSHA256']
-        self.redisip = cfg['redisIP']
-        self.dbconfig = [self.redissha256, self.redisip]
+        self.dbconfig = []
+        self.noredissha256 = True
+        self.noredisip = True
+        if 'redisSHA256' in cfg:
+            self.redissha256 = cfg['redisSHA256']
+            self.dbconfig.append(self.redissha256)
+            self.noredissha256 = False
+        if 'redisIP' in cfg:
+            self.redisip = cfg['redisIP']
+            self.dbconfig.append(self.redisip)
+            self.noredisip = False
+        
         
         # Connect to databases
         self.dbhandler = self.database()
@@ -54,7 +63,7 @@ class greycode:
     # Handle URL input
     def GET(self, query):
         #Sanitize query
-        query = cgi.escape(query)
+        query = html.escape(query)
 
         # Check if input is IP address
         try:
@@ -85,19 +94,22 @@ class greycode:
         except:
             # Details on errors are logged by DBhandler. Add general comment only
             print("Connection Error with Redis database")
-            sys.exit(1)
+            #sys.exit(1)
 
     # Method to query IP blacklists
     # Returns
     #   - NO BLACKLIST ENTRY if no match
     #   - [NAME OF BLACKLIST] if matching an entry
     def checkIP(self, ip):
-        # Check local database first
-        ipverdict = self.dbhandler.readdb(self.redisip['name'], ip) 
-        if ipverdict != None:
-            return ipverdict
+        # If available, check local database first
+        if self.noredisip:
+            print("No Redis IP database in config - skipped local query")
         else:
-            return "NO BLACKLIST ENTRY"
+            ipverdict = self.dbhandler.readdb(self.redisip['name'], ip) 
+            if ipverdict != None:
+                return ipverdict
+            else:
+                return "NO BLACKLIST ENTRY"
 
     # Method to check sha256 hash against Virustotal intel
     # Returns 
@@ -107,16 +119,20 @@ class greycode:
     #   - QUERY IN PROGRESS if the answer is not ready right away
     def checkSHA256(self, sha256):
 
-        # Check local database first
-        vtverdict = self.dbhandler.readdb(self.redissha256['name'], sha256) 
-        # Return local value if available
-        # otherwise start lookup in the background and return "in progress"
-        if vtverdict != None:
-            return vtverdict
+        # If available, check local database first
+        if self.noredissha256:
+            print("No Redis SHA256 database in config - skipped local query")
         else:
-            # Start threaded Virustotal lookup in background
-            thread.start_new_thread(self.threadedVTQuery, (sha256, ))
-            return "QUERY IN PROGRESS"
+            vtverdict = self.dbhandler.readdb(self.redissha256['name'], sha256) 
+            # Return local value if available
+            # otherwise start lookup in the background and return "in progress"
+            if vtverdict != None:
+                return vtverdict
+            else:
+                # Start threaded Virustotal lookup in background
+                newthread = threading.Thread(target=self.threadedVTQuery, args=(sha256, ))
+                newthread.start()
+                return "QUERY IN PROGRESS"
 
     # Method to run virustotal queries threaded in the background
     def threadedVTQuery(self, sha256):

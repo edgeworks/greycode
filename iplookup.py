@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 
 # TODO
-import re
-from urllib2 import HTTPError
+import re, sys
 
 try:
     import requests
