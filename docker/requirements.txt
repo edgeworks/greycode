@@ -1,0 +1,6 @@
+redis
+web.py==0.51
+requests
+ipy
+pyyaml
+

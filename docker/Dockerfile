@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM python:2.7-slim
+FROM python:3.8.2-alpine
 
 # Set the working directory to /app
 WORKDIR /app
@@ -8,14 +8,15 @@ WORKDIR /app
 ADD . /app
 
 # Install any needed packages specified in requirements.txt
-RUN pip install --trusted-host pypi.python.org -r requirements.txt
+COPY requirements.txt requirements.txt
+RUN pip install -r requirements.txt
 
-# Make port 80 available to the world outside this container
-EXPOSE 42042
+# Port 8080 is default of web.py - expose it
+EXPOSE 8080
 
 # Define environment variable
 #ENV NAME World
 
 # Run app.py when the container launches
-CMD ["python", "./greycode.py", "42042"]
+CMD ["python", "./greycode.py"]
 
