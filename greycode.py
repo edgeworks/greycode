@@ -56,6 +56,7 @@ class greycode:
             self.dbconfig.append(self.redisip)
             self.noredisip = False
 
+        self.sha256dbname = self.redissha256['name']
         
         # Connect to databases
         self.dbhandler = self.database()
@@ -127,7 +128,7 @@ class greycode:
         if self.noredissha256:
             print("No Redis SHA256 database in config - skipped local query")
         else:
-            vtverdict = self.dbhandler.readdb(self.redissha256['name'], sha256) 
+            vtverdict = self.dbhandler.readdb(self.sha256dbname, sha256) 
             # Return local value if available
             # otherwise start lookup in the background and return "in progress"
             if vtverdict != None:
