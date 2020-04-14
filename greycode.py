@@ -34,24 +34,29 @@ class greycode:
     def __init__(self):
         
         # Read config greycode.yml
-        with open('greycode.yml', 'r') as ymlfile:
-            cfg = yaml.load(ymlfile)
+        try:
+            with open('greycode.yml', 'r') as ymlfile:
+                cfg = yaml.load(ymlfile)
 
-        self.apikey = cfg['virustotal']['apikey']
-        self.apiurl = cfg['virustotal']['apiurl']
-        self.urls = cfg['iplookup']['urls']
-        self.dbconfig = []
-        self.noredissha256 = True
-        self.noredisip = True
-        if 'redisSHA256' in cfg:
-            self.redissha256 = cfg['redisSHA256']
-            self.dbconfig.append(self.redissha256)
-            self.noredissha256 = False
-        if 'redisIP' in cfg:
-            self.redisip = cfg['redisIP']
-            self.dbconfig.append(self.redisip)
-            self.noredisip = False
-        
+            self.apikey = cfg['virustotal']['apikey']
+            self.apiurl = cfg['virustotal']['apiurl']
+            self.urls = cfg['iplookup']['urls']
+            self.dbconfig = []
+            self.noredissha256 = True
+            self.noredisip = True
+            if 'redisSHA256' in cfg:
+                self.redissha256 = cfg['redisSHA256']
+                self.dbconfig.append(self.redissha256)
+                self.noredissha256 = False
+            if 'redisIP' in cfg:
+                self.redisip = cfg['redisIP']
+                self.dbconfig.append(self.redisip)
+                self.noredisip = False
+
+        except yaml.YAMLError as e:
+            print('Could not read greycode.yml')
+            print(e)
+            sys.exit(1)
         
         # Connect to databases
         self.dbhandler = self.database()
