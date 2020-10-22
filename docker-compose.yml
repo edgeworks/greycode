@@ -1,7 +1,7 @@
 version: "3"
 services:
   web:
-    image: eegor/greycode:latest
+    image: eegor/greycode:dev1
     deploy:
       replicas: 1
       resources:
