@@ -1,5 +1,5 @@
 # Redis instance has to be available on configured port.
-# Greycode does not start redis-server
+# Greycode does not start a redis-server
 redisSHA256:
     name: sha256
     host: 10.1.242.2
