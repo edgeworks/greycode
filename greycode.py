@@ -25,7 +25,7 @@ class Greycode:
         # Read config greycode.yml
         try:
             with open('greycode.yml', 'r') as ymlfile:
-                cfg = yaml.load(ymlfile)
+                cfg = yaml.load(ymlfile, Loader=yaml.SafeLoader)
         except:
             print('Could not open/read greycode.yml')
             sys.exit(1)
@@ -54,6 +54,9 @@ class Greycode:
         newIPlookup = IPlookup(self.urls)
         # TODO Make use of iplookup
         print('init done')
+
+        # Init index for running VirusTotal lookups
+        self.runninglookups = []
 
     # Handle URL input
     def GET(self, query):
@@ -125,17 +128,21 @@ class Greycode:
                 return vtverdict
             else:
                 # Start threaded Virustotal lookup in background
-                newthread = threading.Thread(target=self.threadedVTQuery, args=(sha256, ))
-                newthread.start()
+                if sha256 not in self.runninglookups:
+                    self.runninglookups.append(sha256)
+                    newthread = threading.Thread(target=self.threadedVTQuery, args=(sha256, ))
+                    newthread.start()
                 return "QUERY IN PROGRESS"
 
     # Method to run virustotal queries threaded in the background
     def threadedVTQuery(self, sha256):
         # Create new vtlookup object and pass the API key and URL from config
         newVTlookup = VTlookup(self.apikey, self.apiurl)
+        # Look up the sha256 value
         report = newVTlookup.getReport(sha256)
         report = json.dumps(report)
         report = json.loads(report)
+        # Write the response to the database
         if (report['verbose_msg']) == 'Invalid resource, check what you are submitting':
             print('Invalid resource, check what you are submitting')
         elif (report['verbose_msg']) == 'The requested resource is not among the finished, queued or pending scans':
@@ -144,4 +151,6 @@ class Greycode:
             self.dbhandler.writedb(self.redissha256['name'], sha256, 'GREEN')
         else:
             self.dbhandler.writedb(self.redissha256['name'], sha256, 'RED')
+        # Clear the index
+        self.runninglookups.remove(sha256)
 
