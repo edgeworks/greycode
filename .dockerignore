@@ -3,6 +3,3 @@
 .gitignore
 .cache
 
-# ignore greycode.yml because of possible secrets
-greycode.yml
-
