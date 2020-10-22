@@ -18,5 +18,5 @@ EXPOSE 8080
 #ENV NAME World
 
 # Run app.py when the container launches
-CMD ["python", "./greycode.py"]
+CMD ["python", "-u", "./greycode.py"]
 

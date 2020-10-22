@@ -12,24 +12,13 @@ except:
     sys.exit(1)
 
 try:
-    import web
-except:
-    print("[Warning] webpy is missing. Checkout webpy.org for installation")
-    sys.exit(1)
-
-try:
     import yaml
 except:
     print("[Warning] PyYaml is missing. Checkout pyyaml.org for installation")
     sys.exit(1)
 
 
-# Set static URL for web app
-urls = (
-       '/(.*)', 'greycode'
-)
-
-class greycode:
+class Greycode:
 
     def __init__(self):
         
@@ -64,6 +53,7 @@ class greycode:
         # Start iplookup daemon
         newIPlookup = IPlookup(self.urls)
         # TODO Make use of iplookup
+        print('init done')
 
     # Handle URL input
     def GET(self, query):
@@ -155,8 +145,3 @@ class greycode:
         else:
             self.dbhandler.writedb(self.redissha256['name'], sha256, 'RED')
 
-
-
-if __name__ == "__main__":
-    app = web.application(urls, globals())
-    app.run()
